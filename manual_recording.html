@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Create Manual Recording</title>
+    <style>
+      .form-group {
+        display: flex;
+        margin-bottom: 10px;
+      }
+      .form-group label {
+        margin-right: 5px;
+        font-size: medium;
+      }
+      #schedule {
+        display: block;
+        margin: 0 auto;
+        width: 80;
+        height: 40;
+        font-size: medium;
+      }
+      .datetime-group {
+        display: flex;
+        align-items: center;
+      }
+      .datetime-group input {
+        margin-left: 10px;
+        width: 100px;
+      }
+      #channel {
+        width: 46px;
+      }
+      #program {
+        width: 336px;
+      }
+      #episode {
+        width: 356px;
+      }
+      #image {
+        width: 370px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="form-group">
+      <label for="start">Start:</label>
+      <div class="datetime-group">
+        <input type="date" id="startDate">
+        <input type="time" id="startTime">
+      </div>
+    </div>
+    <br>
+    <div class="form-group">
+      <label for="stop">Stop:</label>
+      <div class="datetime-group">
+        <input type="date" id="stopDate">
+        <input type="time" id="stopTime">
+      </div>
+    </div>
+    <br>
+    <div class="form-group">
+      <label for="channel">Channel Number:</label>
+      <input type="text" id="channel" value="6007">
+    </div>
+    <br>
+    <div class="form-group">
+      <label for="program">Program Name:</label>
+      <input type="text" id="program" value="Manual Recordings">
+    </div>
+    <br>
+    <div class="form-group">
+      <label for="episode">Episode Title:</label>
+      <input type="text" id="episode" value="Manual Recording">
+    </div>
+    <br>
+    <div class="form-group">
+      <label for="image">Image URL:</label>
+      <input type="text" id="image" value="https://tmsimg.fancybits.co/assets/p9467679_st_h6_aa.jpg">
+    </div>
+    <br>
+    <button id="preview">Preview Image</button>
+    <button id="schedule">Submit</button>
+    <script src="manual_recording.js"></script>
+  </body>
+</html>
