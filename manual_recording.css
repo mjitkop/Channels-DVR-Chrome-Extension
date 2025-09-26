@@ -1,0 +1,31 @@
+/**
+ * @file        manual_recording.css
+ * @description Styling for manual recording popup UI.
+ * @author      Gildas LeFur
+ * @copyright   © 2025 Gildas LeFur. All rights reserved.
+ * @license     MIT
+ * @version     1.0.0
+ * @date        2025-09-21
+ * @history
+ *   - 1.0.0 (2025-09-21): Initial version.
+ */
+ 
+ body.dark {
+  background-color: #121212;
+  color: #f0f0f0;
+}
+
+body.dark input {
+    background-color: white;
+    color: black;
+  }
+  
+body.dark label {
+  color: #f0f0f0;
+}
+
+/* Style for disabled episode field */
+.episode-disabled {
+    opacity: 0.5;
+    pointer-events: none;
+}

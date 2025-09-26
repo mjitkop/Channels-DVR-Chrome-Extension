@@ -1,5 +1,20 @@
+/**
+ * @file        manual_recording.js
+ * @description Handles dark mode toggle, dynamic field control, and DVR channel logic for popup UI.
+ * @author      Gildas LeFur
+ * @copyright   © 2025 Gildas LeFur. All rights reserved.
+ * @license     MIT
+ * @version     1.0.0
+ * @date        2025-09-25
+ * @history
+ *   - 1.0.0 (2025-09-25): Initial version with popup layout and basic UI wiring.
+ */
+
 // Retrieve the URL of the DVR that was read by the extension popup
-let dvrUrl = sessionStorage.getItem('dvrUrl')
+const params = new URLSearchParams(window.location.search);
+const dvrUrl = params.get("ipPort");
+
+console.log("Received DVR URL:", dvrUrl);
 
 // Constants
 const DefaultImageUrl = "https://tmsimg.fancybits.co/assets/p9467679_st_h6_aa.jpg"
@@ -8,16 +23,19 @@ const DefaultImageUrl = "https://tmsimg.fancybits.co/assets/p9467679_st_h6_aa.jp
 let channelNumber = 0
 let episodeTitle = ""
 let imageUrl = DefaultImageUrl
+let movie = ""
 let programName = ""
+let programType = ""
 let startDate = ""
 let startTime = ""
 let stopDate = ""
 let stopTime = ""
+let summary = ""
 
 // Other global variables
 let duration = 0
 let jsonPayload = {}
-let proceed = true
+let noErrors = true
 let startDateTime = 0
 
 function calculateDuration() {
@@ -35,24 +53,30 @@ function calculateDuration() {
   console.log("Duration: " + duration)
 
   if (duration <= 0) {
-    proceed = false
+    noErrors = false
   }
 
-  console.log("proceed: " + proceed)
+  console.log("proceed: " + noErrors)
   console.log("< calculateDuration()")
 }
 
 function confirmAllInputsAreFilled() {
   console.log("> confirmAllInputsAreFilled()")
 
-  if (!startDate || !startTime || !stopDate || !stopTime || !channelNumber || !programName || !episodeTitle || !imageUrl) {
+  let showAlert = !startDate || !startTime || !stopDate || !stopTime || !channelNumber || !programName || !imageUrl
+
+  if (programType === "tv") {
+    showAlert = showAlert && !episodeTitle
+  }
+  
+  if (showAlert) {
     console.log("Missing some inputs. Alerting the user.")
     alert("Make sure to fill in all the inputs!")
 
-    proceed = false
+    noErrors = false
   } 
 
-  console.log("proceed: " + proceed)
+  console.log("proceed: " + noErrors)
   console.log("< confirmAllInputsAreFilled()")
 }
 
@@ -66,10 +90,10 @@ function confirmStartTimeInFuture() {
     console.log("startDateTime in the past. Alerting the user.")
     alert("Make sure to pick a start time in the future!")
 
-    proceed = false
+    noErrors = false
   }
 
-  console.log("proceed: " + proceed)
+  console.log("proceed: " + noErrors)
   console.log("< confirmStartTimeInFuture()")
 }
 
@@ -83,10 +107,10 @@ function confirmStopTimeAfterStartTime() {
     console.log("The stop time is invalid. Alerting the user.")
     alert("Make sure to pick a stop time that is later than the start time!")
 
-    proceed = false
+    noErrors = false
   }
 
-  console.log("proceed: " + proceed)
+  console.log("proceed: " + noErrors)
   console.log("< confirmStopTimeAfterStartTime()")
 }
 
@@ -106,11 +130,18 @@ function createJsonPayload() {
   jsonPayload.Airing.Time = jsonPayload.Time;
   jsonPayload.Airing.Duration = duration;
   jsonPayload.Airing.Title = programName;
-  jsonPayload.Airing.EpisodeTitle = episodeTitle;
-  jsonPayload.Airing.Summary = "Manual recording created with the Chrome extension.";
-  jsonPayload.Airing.SeriesID = "MANUAL";
-  jsonPayload.Airing.ProgramID = "MAN" + jsonPayload.Time;
+  jsonPayload.Airing.Summary = summary
   jsonPayload.Airing.Image = imageUrl
+
+  if (programType === "tv") {
+    jsonPayload.Airing.SeriesID = "manual/" + programName;
+    jsonPayload.Airing.Categories = ["Show"];
+    jsonPayload.Airing.EpisodeTitle = episodeTitle;
+  }
+  else {
+    jsonPayload.Airing.MovieID = "manual/" + programName;
+    jsonPayload.Airing.Categories = ["Movie"];
+  }
 
   console.log(JSON.stringify(jsonPayload, null, 2));
   console.log("< createJsonPayload()")
@@ -150,8 +181,14 @@ function readUserInputs() {
   programName = document.getElementById('program').value
   console.log("Program name: " + programName)
 
+  programType = document.querySelector('input[name="programType"]:checked').value
+  console.log("Program type: " + programType)
+
   episodeTitle = document.getElementById('episode').value
   console.log("Episode title: " + episodeTitle)
+
+  summary = document.getElementById('summary').value
+  console.log("Summary: " + summary)
 
   imageUrl = document.getElementById('image').value
   console.log("Image URL: " + imageUrl)
@@ -162,28 +199,28 @@ function readUserInputs() {
 function sendRequestToServer() {
   console.log("> sendRequestToServer()")
 
-  proceed = true;
+  noErrors = true;
 
-  let requestUrl = dvrUrl + "/dvr/jobs/new";
+  let requestUrl = "http://" + dvrUrl + "/dvr/jobs/new";
   console.log("Request URL: " + requestUrl);
 
   readUserInputs();
 
   confirmAllInputsAreFilled();
 
-  if (proceed) {
+  if (noErrors) {
     confirmStartTimeInFuture()
   }
 
-  if (proceed) {
+  if (noErrors) {
     confirmStopTimeAfterStartTime();
   }
 
-  if (proceed) {
+  if (noErrors) {
     calculateDuration();
   }
 
-  if (proceed) {
+  if (noErrors) {
     createJsonPayload();
 
     fetch(requestUrl, {
@@ -209,7 +246,76 @@ function sendRequestToServer() {
   console.log("< sendRequestToServer()")
 }
 
+function getTodaysDate() {
+  console.log("> getTodaysDate()")
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0'); // Months are 0-based
+  const day = String(today.getDate()).padStart(2, '0');
+
+  const localDate = `${year}-${month}-${day}`;
+  console.log(localDate); // e.g., "2025-09-25"
+  console.log("< getTodaysDate()")
+  return localDate
+}
+
+let today = getTodaysDate();
+document.getElementById('startDate').value = today
+document.getElementById('stopDate').value = today
+
 document.getElementById('preview').addEventListener('click', openImageInNewWindow);
 document.getElementById('schedule').addEventListener('click', sendRequestToServer);
 
+document.addEventListener("DOMContentLoaded", () => {
+  const toggle = document.getElementById("darkModeToggle");
+  const body = document.body;
 
+  // Apply saved dark mode preference
+  const darkModeEnabled = localStorage.getItem("darkMode") === "true";
+  toggle.checked = darkModeEnabled;
+  if (darkModeEnabled) {
+    body.classList.add("dark");
+  } else {
+    body.classList.remove("dark");
+  }
+
+  // Listen for toggle changes
+  toggle.addEventListener("change", () => {
+    const enabled = toggle.checked;
+    localStorage.setItem("darkMode", enabled.toString());
+
+    if (enabled) {
+      body.classList.add("dark");
+    } else {
+      body.classList.remove("dark");
+    }
+  });
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  const episodeInput = document.getElementById("episode");
+  const episodeLabel = document.querySelector('label[for="episode"]');
+  const programTypeRadios = document.querySelectorAll('input[name="programType"]');
+
+  function updateEpisodeField() {
+    const selectedType = document.querySelector('input[name="programType"]:checked').value;
+    const isTV = selectedType === "tv";
+
+    episodeInput.disabled = !isTV;
+
+    if (!isTV) {
+      episodeInput.value = ""; // Clear the field when disabled
+      episodeInput.classList.add("episode-disabled");
+      episodeLabel.classList.add("episode-disabled");
+    } else {
+      episodeInput.classList.remove("episode-disabled");
+      episodeLabel.classList.remove("episode-disabled");
+    }
+  }
+
+  updateEpisodeField();
+
+  programTypeRadios.forEach(radio => {
+    radio.addEventListener("change", updateEpisodeField);
+  });
+});

@@ -1,11 +1,24 @@
+<!--
+  @file        manual_recording.html
+  @description Popup layout for manual recording in DVR extension.
+  @author      Gildas LeFur
+  @copyright   © 2025 Gildas LeFur. All rights reserved.
+  @license     MIT
+  @version     1.0.0
+  @date        2025-09-21
+  @history
+    - 1.0.0: Initial structure and styling.
+-->
+    
 <!DOCTYPE html>
 <html>
   <head>
+    <link rel="stylesheet" href="manual_recording.css">
     <title>Create Manual Recording</title>
     <style>
       .form-group {
         display: flex;
-        margin-bottom: 10px;
+        margin-bottom: 0px;
       }
       .form-group label {
         margin-right: 5px;
@@ -35,12 +48,71 @@
       #episode {
         width: 356px;
       }
+      #summary {
+        width: 380px;
+      }
       #image {
         width: 370px;
+      }
+
+      .switch {
+        position: relative;
+        display: inline-block;
+        width: 40px;
+        height: 20px;
+      }
+      .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+      .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0; left: 0;
+        right: 0; bottom: 0;
+        background-color: #ccc;
+        transition: .4s;
+        border-radius: 20px;
+      }
+      .slider:before {
+        position: absolute;
+        content: "";
+        height: 14px;
+        width: 14px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+      }
+      input:checked + .slider {
+        background-color: #2196F3;
+      }
+      input:checked + .slider:before {
+        transform: translateX(20px);
+      }
+      body.dark-mode {
+        background-color: #121212;
+        color: #f0f0f0;
+      }
+      body.dark-mode input,
+      body.dark-mode select,
+      body.dark-mode textarea {
+        background-color: #1e1e1e;
+        color: #f0f0f0;
+        border: 1px solid #444;
       }
     </style>
   </head>
   <body>
+    <div style="margin-bottom: 15px;">
+      <label style="font-weight: bold;">Dark Mode:</label>
+      <label class="switch">
+        <input type="checkbox" id="darkModeToggle">
+        <span class="slider"></span>
+      </label>
+    </div>
     <div class="form-group">
       <label for="start">Start:</label>
       <div class="datetime-group">
@@ -68,8 +140,25 @@
     </div>
     <br>
     <div class="form-group">
+      <label for="program_type">Program Type:</label>
+      <label>
+        <input type="radio" name="programType" value="tv" checked>
+        TV Show
+      </label><br>
+      <label>
+        <input type="radio" name="programType" value="movie">
+        Movie
+      </label>
+    </div>
+    <br>
+    <div class="form-group">
       <label for="episode">Episode Title:</label>
       <input type="text" id="episode" value="Manual Recording">
+    </div>
+    <br>
+    <div class="form-group">
+      <label for="summary">Summary:</label>
+      <input type="text" id="summary">
     </div>
     <br>
     <div class="form-group">
