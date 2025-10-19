@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "Channels DVR Extras",
-    "version": "1.0.0",
+    "version": "2.0.0",
     "description": "Adds extra features to a Channels DVR server.",
     "author": "Gildas LeFur",
     "background": {
@@ -11,6 +11,11 @@
       {
         "matches": ["<all_urls>"],
         "js": ["content.js"],
+        "run_at": "document_idle"
+      },
+      {
+        "matches": ["http://*/admin/settings/sources"],
+        "js": ["content-monitor_sources.js"],
         "run_at": "document_idle"
       }
     ],
@@ -26,7 +31,7 @@
     },
     "web_accessible_resources": [
     {
-      "resources": ["manual_recording.html"],
+      "resources": ["manual_recording.html", "monitor_popup.html"],
       "matches": ["<all_urls>"]
     }
     ]
